@@ -13,7 +13,7 @@ export function renderLanding(app, { navigate }) {
       <nav class="navbar" id="landing-navbar">
         <a class="navbar__logo" href="#/">
           <span class="material-symbols-outlined" style="color:var(--primary)">eco</span>
-          Agri<span>NovaX</span>
+         <span>AgriNovaX</span>
         </a>
         <div class="navbar__links">
           <a class="navbar__link navbar__link--active" href="#/">${t('nav_home')}</a>

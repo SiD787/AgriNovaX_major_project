@@ -1,7 +1,7 @@
 /**
  * Input Page - with i18n support
  */
-import { predictCrop } from '../utils/api.js';
+import { predictCrop, getWeather } from '../utils/api.js';
 import { t, getLanguage } from '../utils/i18n.js';
 import { sidebar } from './components.js';
 
@@ -55,13 +55,13 @@ export function renderInput(app, { navigate, state }) {
           </div>
 
           <!-- Weather -->
-          <div class="card card--elevated" style="margin-bottom:var(--space-lg)">
+          <div class="card card--elevated" style="margin-bottom:var(--space-lg)" id="weather-section">
             <div class="card__header">
               <h2 class="card__title" style="display:flex;align-items:center;gap:var(--space-sm)">
                 <span class="material-symbols-outlined" style="color:var(--primary)">thermostat</span>
                 ${t('input_weather_title')}
               </h2>
-              <span class="badge badge--primary">${t('input_required')}</span>
+              <span class="badge badge--primary" id="weather-badge">${t('input_required')}</span>
             </div>
             <div class="grid grid--3" style="gap:var(--space-md)">
               <div class="form-group">
@@ -74,7 +74,7 @@ export function renderInput(app, { navigate, state }) {
               </div>
               <div class="form-group">
                 <label class="form-label" for="input-rainfall">${t('input_rainfall')}</label>
-                <input class="form-input" id="input-rainfall" type="number" placeholder="e.g. 200" min="0" max="500" step="0.1" required />
+                <input class="form-input" id="input-rainfall" type="number" placeholder="e.g. 200" min="0" max="3000" step="0.1" required />
               </div>
             </div>
           </div>
@@ -93,9 +93,10 @@ export function renderInput(app, { navigate, state }) {
                 <label class="form-label" for="input-area">${t('input_area')}</label>
                 <input class="form-input" id="input-area" type="number" placeholder="e.g. 2" min="0.1" max="1000" step="0.1" value="1" />
               </div>
-              <div class="form-group">
+              <div class="form-group" style="position:relative;">
                 <label class="form-label" for="input-location">${t('input_location')}</label>
                 <input class="form-input" id="input-location" type="text" placeholder="e.g. Nagpur, Maharashtra" />
+                <span id="loc-spinner" class="material-symbols-outlined" style="display:none; position:absolute; right:10px; top:35px; animation: va-mic-pulse 1s infinite; color:var(--primary);">sync</span>
               </div>
               <div class="form-group">
                 <label class="form-label" for="input-language">${t('input_language')}</label>
@@ -141,6 +142,81 @@ export function renderInput(app, { navigate, state }) {
   // Set voice language to match UI language
   const langSelect = document.getElementById('input-language');
   if (langSelect) langSelect.value = getLanguage();
+
+  // Fetch weather automatically when location is entered
+  const locInput = document.getElementById('input-location');
+  if (locInput) {
+    let debounceTimer;
+    locInput.addEventListener('change', async (e) => {
+      const loc = e.target.value.trim();
+      if (!loc) return;
+      
+      const spinner = document.getElementById('loc-spinner');
+      const badge = document.getElementById('weather-badge');
+      
+      try {
+        spinner.style.display = 'block';
+        badge.textContent = 'Fetching...';
+        badge.className = 'badge badge--info';
+        
+        const weather = await getWeather(loc);
+        if (weather && weather.current) {
+          const c = weather.current;
+          // Set values with a small animation/highlight
+          const tempInput = document.getElementById('input-temp');
+          const humInput = document.getElementById('input-humidity');
+          const rainInput = document.getElementById('input-rainfall');
+          
+          if (tempInput && c.temperature !== undefined) tempInput.value = c.temperature;
+          if (humInput && c.humidity !== undefined) humInput.value = c.humidity;
+          
+          // Rainfall from API is often current day rain (which might be 0).
+          // For crop prediction, we usually need annual or seasonal rainfall.
+          // Since the API returns daily rain, we can multiply by a seasonal factor if > 0,
+          // or sum the forecast, or just use the current rain if the user expects it.
+          // Let's use the sum of 7-day forecast precipitation * 4 (roughly a month) or current rain.
+          let estRain = c.rain || 0;
+          if (weather.forecast && weather.forecast.length > 0) {
+             const sumPrecip = weather.forecast.reduce((acc, day) => acc + (day.precipitation || 0), 0);
+             if (sumPrecip > estRain) estRain = sumPrecip * 4; // estimate monthly
+          }
+          if (rainInput) {
+            if (estRain > 0) {
+              rainInput.value = estRain.toFixed(1);
+            } else if (!rainInput.value) {
+              rainInput.value = "0"; // fallback if 0
+            }
+          }
+          
+          // Flash effect
+          [tempInput, humInput, rainInput].forEach(el => {
+             if (el) {
+               el.style.backgroundColor = '#e8f5e9';
+               setTimeout(() => el.style.backgroundColor = '', 1500);
+             }
+          });
+          
+          if (badge) {
+            badge.textContent = 'Auto-filled';
+            badge.className = 'badge badge--success';
+          }
+        } else {
+          if (badge) {
+            badge.textContent = 'Failed';
+            badge.className = 'badge badge--danger';
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch weather:", err);
+        if (badge) {
+          badge.textContent = 'Failed';
+          badge.className = 'badge badge--danger';
+        }
+      } finally {
+        if (spinner) spinner.style.display = 'none';
+      }
+    });
+  }
 
   // Form submission
   document.getElementById('predict-form').addEventListener('submit', async (e) => {

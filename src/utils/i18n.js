@@ -115,6 +115,8 @@ export const translations = {
     dash_no_analysis: "No Analysis Yet",
     dash_no_analysis_desc: "Enter your soil and weather data to get AI-powered crop recommendations.",
     dash_enter_data: "Enter Data",
+    dash_download: "Download Report",
+    dash_ask_assistant: "Ask Assistant",
 
     // Weather
     weather_overline: "Weather Intelligence",
@@ -282,6 +284,8 @@ export const translations = {
     dash_no_analysis: "अभी तक कोई विश्लेषण नहीं",
     dash_no_analysis_desc: "AI-संचालित फसल अनुशंसाएं प्राप्त करने के लिए अपनी मिट्टी और मौसम का डेटा दर्ज करें।",
     dash_enter_data: "डेटा दर्ज करें",
+    dash_download: "रिपोर्ट डाउनलोड करें",
+    dash_ask_assistant: "असिस्टेंट से पूछें",
     weather_overline: "मौसम बुद्धिमत्ता",
     weather_title: "कृषि मौसम पूर्वानुमान",
     weather_subtitle: "खेती गतिविधियों की योजना बनाने के लिए रीयल-टाइम मौसम डेटा",
@@ -439,6 +443,8 @@ export const translations = {
     dash_no_analysis: "अजून विश्लेषण नाही",
     dash_no_analysis_desc: "AI-संचालित पीक शिफारसी मिळवण्यासाठी तुमची माती आणि हवामान डेटा प्रविष्ट करा.",
     dash_enter_data: "डेटा प्रविष्ट करा",
+    dash_download: "अहवाल डाउनलोड करा",
+    dash_ask_assistant: "असिस्टंटला विचारा",
     weather_overline: "हवामान बुद्धिमत्ता",
     weather_title: "कृषी हवामान अंदाज",
     weather_subtitle: "शेती कार्यांच्या नियोजनासाठी रिअल-टाइम हवामान डेटा",

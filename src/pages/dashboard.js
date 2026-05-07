@@ -3,6 +3,7 @@
  */
 import { sidebar } from './components.js';
 import { t, getLanguage } from '../utils/i18n.js';
+import { generatePDFReport } from '../utils/pdfReport.js';
 
 export function renderDashboard(app, { navigate, state }) {
   const results = state.get('results');
@@ -48,7 +49,7 @@ export function renderDashboard(app, { navigate, state }) {
   app.innerHTML = `
     <div class="app-layout">
       ${sidebar('dashboard')}
-      <main class="main-content page-enter">
+      <main class="main-content page-enter" id="dashboard-content">
         <div class="section-header">
           <div class="section-header__overline">${t('dash_overline')}</div>
           <h1 class="section-header__title">${t('dash_title')}</h1>
@@ -224,7 +225,7 @@ export function renderDashboard(app, { navigate, state }) {
             </h2>
             <span class="badge badge--primary" style="cursor:pointer" onclick="document.getElementById('va-fab')?.click()" title="Open Voice Assistant">
               <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle">mic</span>
-              Ask Assistant
+              ${t('dash_ask_assistant')}
             </span>
           </div>
           <div style="background:var(--surface-container-low);border-radius:var(--radius-md);padding:var(--space-lg)">
@@ -238,9 +239,9 @@ export function renderDashboard(app, { navigate, state }) {
             <span class="material-symbols-outlined">arrow_back</span>
             ${t('dash_new_analysis')}
           </button>
-          <button class="btn btn--ghost" onclick="window.print()">
-            <span class="material-symbols-outlined">print</span>
-            ${t('dash_print')}
+          <button class="btn btn--primary" id="download-pdf-btn" onclick="agriDownloadPDF()">
+            <span class="material-symbols-outlined">picture_as_pdf</span>
+            ${t('dash_download')}
           </button>
         </div>
       </main>
@@ -252,5 +253,9 @@ export function renderDashboard(app, { navigate, state }) {
   window.toggleSidebar = () => {
     document.querySelector('.sidebar').classList.toggle('sidebar--open');
     document.getElementById('sidebar-overlay').classList.toggle('sidebar-overlay--visible');
+  };
+
+  window.agriDownloadPDF = () => {
+    generatePDFReport(results);
   };
 }

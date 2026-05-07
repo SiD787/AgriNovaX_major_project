@@ -7,6 +7,7 @@
  */
 import { chatWithAssistant } from '../utils/api.js';
 import { getLanguage } from '../utils/i18n.js';
+import { state } from '../utils/state.js';
 
 const LANG_MAP = {
   en: 'en-IN',
@@ -273,7 +274,15 @@ function toggleListening() {
     }
   };
 
-  recognition.start();
+  try {
+    recognition.start();
+  } catch (err) {
+    console.error("Speech recognition error:", err);
+    isListening = false;
+    updateMicState();
+    autoListen = false;
+    setStatus('Microphone error. Please type your question.');
+  }
 }
 
 function stopListening() {
@@ -333,7 +342,21 @@ async function sendMessage(text, isGreeting = false) {
 
   try {
     const lang = document.getElementById('va-lang')?.value || getLanguage();
-    const result = await chatWithAssistant(text, lang);
+    
+    // Build context from current analysis results so the AI knows what the user entered
+    const results = state.get('results');
+    let chatContext = null;
+    if (results) {
+      chatContext = {
+        recommendation: results.recommendation || null,
+        soil_health: results.soil_health || null,
+        input_summary: results.input_summary || null,
+        economics: results.economics ? { summary: results.economics.summary } : null,
+        alternatives: (results.alternatives || []).map(a => ({ crop: a.crop, confidence: a.confidence })),
+        soil_improvement: results.soil_improvement ? { soil_tips: (results.soil_improvement.soil_tips || []).slice(0, 3) } : null,
+      };
+    }
+    const result = await chatWithAssistant(text, lang, chatContext);
     
     // Remove typing indicator
     removeTypingIndicator(typingId);

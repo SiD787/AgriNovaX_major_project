@@ -33,11 +33,13 @@ export async function healthCheck() {
   }
 }
 
-export async function chatWithAssistant(message, language = 'en') {
+export async function chatWithAssistant(message, language = 'en', context = null) {
+  const body = { message, language };
+  if (context) body.context = context;
   const response = await fetch(`${API_BASE}/chat`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ message, language }),
+    body: JSON.stringify(body),
   });
   if (!response.ok) throw new Error('Chat failed');
   return response.json();
