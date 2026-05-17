@@ -1,7 +1,9 @@
 /**
  * API client for AgriNovaX backend
  */
-const API_BASE = "/api"
+const RENDER_BACKEND = "https://agrinovax-project-backend.onrender.com";
+const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+const API_BASE = isLocal ? "/api" : RENDER_BACKEND;
 
 export async function predictCrop(inputData) {
   const response = await fetch(`${API_BASE}/predict`, {
